@@ -1,0 +1,15 @@
+# Node
+node_modules/
+dist/
+.vite/
+.env
+.env.local
+
+# Java / Maven
+target/
+.mvn/
+*.iml
+.idea/
+
+# OS
+.DS_Store
