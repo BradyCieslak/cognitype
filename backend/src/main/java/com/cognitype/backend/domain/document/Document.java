@@ -1,31 +1,34 @@
 package com.cognitype.backend.domain.document;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
 import java.time.Instant;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity                     // database table
 @Table(name = "documents")  // table name in database
 public class Document {
 
-    @Id                                     // primary key
+    @Id // primary key
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Long id;
 
     @Column(nullable = false, length = 200)
+    @Getter @Setter
     private String title;
 
     @Column(nullable = false, length = 100000)
+    @Getter @Setter
     private String content;
 
     @Column(nullable = false)
+    @Getter @Setter
     private Instant createdAt;
 
-    // Getters & setters
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }
