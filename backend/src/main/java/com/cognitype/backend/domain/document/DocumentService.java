@@ -1,10 +1,6 @@
 package com.cognitype.backend.domain.document;
 
-import com.cognitype.backend.api.v1.documents.UpdateTitleRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.Instant;
 
