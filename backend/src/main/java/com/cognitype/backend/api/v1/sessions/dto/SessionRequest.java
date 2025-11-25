@@ -1,7 +1,7 @@
 package com.cognitype.backend.api.v1.sessions.dto;
 
-import com.cognitype.backend.domain.session.Difficulty;
-import com.cognitype.backend.domain.session.SessionMode;
+import com.cognitype.backend.domain.session.enums.Difficulty;
+import com.cognitype.backend.domain.session.enums.SessionMode;
 
 public record CreateSessionRequest (
     Long documentId,

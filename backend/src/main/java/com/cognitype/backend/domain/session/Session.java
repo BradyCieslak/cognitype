@@ -1,6 +1,8 @@
 package com.cognitype.backend.domain.session;
 
 import com.cognitype.backend.domain.document.Document;
+import com.cognitype.backend.domain.session.enums.Difficulty;
+import com.cognitype.backend.domain.session.enums.SessionMode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

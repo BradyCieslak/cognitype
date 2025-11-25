@@ -25,7 +25,7 @@ public class Document {
 
     @Column(nullable = false, length = 100000)
     @Getter @Setter
-    private String content;
+    private String text;
 
     @Column(nullable = false)
     @Getter @Setter
