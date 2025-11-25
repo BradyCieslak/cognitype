@@ -1,6 +1,11 @@
 package com.cognitype.backend.domain.document;
 
+import com.cognitype.backend.api.v1.documents.UpdateTitleRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.time.Instant;
 
 @Service // logic layer
@@ -18,7 +23,7 @@ public class DocumentService {
         doc.setTitle(title);
         doc.setContent(content);
         doc.setCreatedAt(Instant.now());
-        return repo.save(doc);   // saves to the database
+        return repo.save(doc);
     }
 
     public Document get(Long id) {
@@ -26,4 +31,18 @@ public class DocumentService {
                 () -> new RuntimeException("Document not found: " + id)
         );
     }
+
+    public Document updateTitle(Long id, String newTitle) {
+        if (newTitle == null || newTitle.isBlank()) {
+            throw new RuntimeException("Title cannot be empty");
+        }
+
+        Document doc = repo.findById(id).orElseThrow(
+                () -> new RuntimeException("Document not found: " + id)
+        );
+
+        doc.setTitle(newTitle.trim());
+        return repo.save(doc);
+    }
+
 }

@@ -14,15 +14,25 @@ public class DocumentController {
         this.service = service;
     }
 
-    // POST: create a document
-    @PostMapping
-    public Document create(@RequestBody Document doc) {
-        return service.create(doc.getTitle(), doc.getContent());
-    }
-
     // GET: get a document by id
     @GetMapping("/{id}")
     public Document get(@PathVariable Long id) {
         return service.get(id);
+    }
+
+    @PostMapping
+    public CreateDocumentResponse create(@RequestBody CreateDocumentRequest req) {
+        if (req.getText() == null || req.getText().isBlank()) {
+            throw new RuntimeException("Text is required");
+        }
+
+        Document doc = service.create("Untitled", req.getText());
+        return new CreateDocumentResponse(doc.getId());
+    }
+
+    @PatchMapping("/{id}/title")
+    public Document rename(@PathVariable Long id,
+                           @RequestBody UpdateTitleRequest req) {
+        return service.updateTitle(id, req.getTitle());
     }
 }

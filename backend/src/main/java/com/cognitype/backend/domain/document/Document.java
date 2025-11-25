@@ -10,11 +10,11 @@ import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity                     // database table
-@Table(name = "documents")  // table name in database
+@Entity
+@Table(name = "documents")
 public class Document {
 
-    @Id // primary key
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter
     private Long id;

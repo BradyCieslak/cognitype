@@ -1,0 +1,42 @@
+### 1. Create a test document
+POST http://localhost:8080/v1/api/documents
+Content-Type: application/json
+
+{
+  "title": "Test Document",
+  "text": "This is a test document to verify chunking. It should split on spaces and create chunks near the size we request. This is the second sentence to make the chunking more obvious. And here is a third sentence."
+}
+
+
+### 2. Generate chunks for the created document
+# Replace 1 with the ID the previous request returns
+POST http://localhost:8080/v1/api/documents/1/chunks?size=80
+
+
+### 3. List generated chunks
+GET http://localhost:8080/v1/api/documents/1/chunks
+
+
+### 4. Test smaller chunk size (optional)
+POST http://localhost:8080/v1/api/documents/1/chunks?size=40
+
+
+### 5. List chunks again after regenerating
+GET http://localhost:8080/v1/api/documents/1/chunks
+
+
+### 6. Rename document (ONLY IF YOU IMPLEMENTED PATCH ROUTE)
+PATCH http://localhost:8080/v1/api/documents/1/title
+Content-Type: application/json
+
+{
+  "title": "Updated Document Title"
+}
+
+
+### 7. Fetch the document to verify rename (if you added GET /documents/{id})
+GET http://localhost:8080/v1/api/documents/1
+
+
+### 8. Error case – document does not exist
+POST http://localhost:8080/v1/api/documents/9999/chunks?size=80

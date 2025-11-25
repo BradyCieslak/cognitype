@@ -26,7 +26,7 @@ public class Chunk {
     @Getter @Setter
     private Document document;
 
-    @Column(length = 2000)
+    @Column(length = 4000)
     @Getter @Setter
     private String text;
 
