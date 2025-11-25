@@ -21,7 +21,7 @@ public class ChunkService {
                 () -> new RuntimeException("Document not found")
         );
 
-        String text = doc.getContent();
+        String text = doc.getText();
         if(text == null || text.isBlank()) {
             return List.of();
         }
