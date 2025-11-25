@@ -3,9 +3,9 @@ package com.cognitype.backend.domain.session;
 
 import com.cognitype.backend.domain.document.Document;
 import com.cognitype.backend.domain.document.DocumentRepository;
-import com.cognitype.backend.domain.session.dto.CreateSessionRequest;
-import com.cognitype.backend.domain.session.dto.SessionCompleteRequest;
-import com.cognitype.backend.domain.session.dto.SessionProgressRequest;
+import com.cognitype.backend.api.v1.sessions.dto.CreateSessionRequest;
+import com.cognitype.backend.api.v1.sessions.dto.SessionCompleteRequest;
+import com.cognitype.backend.api.v1.sessions.dto.SessionProgressRequest;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;

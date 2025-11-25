@@ -1,4 +1,4 @@
-package com.cognitype.backend.domain.session.dto;
+package com.cognitype.backend.api.v1.sessions.dto;
 
 public record SessionProgressRequest (
         int typedCharsDelta,
