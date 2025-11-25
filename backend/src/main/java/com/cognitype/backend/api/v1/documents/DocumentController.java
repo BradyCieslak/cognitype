@@ -31,13 +31,13 @@ public class DocumentController {
             throw new RuntimeException("Text is required");
         }
 
-        Document doc = documentService.createDocumentFromText(req.title(), req.text());
+        Document doc = documentService.createFromText(req.title(), req.text());
         return new DocumentResponse(doc.getId());
     }
 
-    @PostMapping(path = "/pdf", consumes =MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public DocumentResponse uploadPdf(@RequestPart("file") MultipartFile file) {
-        Document doc = documentService.createDocumentFromPdf(file);
+        Document doc = documentService.createFromUpload(file);
         return new DocumentResponse(doc.getId());
     }
 

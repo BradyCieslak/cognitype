@@ -1,9 +1,9 @@
 package com.cognitype.backend.api.v1.sessions;
 
 
-import com.cognitype.backend.api.v1.sessions.dto.CreateSessionRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionCompleteRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionProgressRequest;
+import com.cognitype.backend.api.v1.sessions.dto.SessionRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionResponse;
 import com.cognitype.backend.domain.session.Session;
 import com.cognitype.backend.domain.session.SessionService;
@@ -24,7 +24,7 @@ public class SessionController {
     private final SessionService sessionService;
 
     @PostMapping
-    public ResponseEntity<SessionResponse> createSession(@RequestBody CreateSessionRequest req) {
+    public ResponseEntity<SessionResponse> createSession(@RequestBody SessionRequest req) {
         Session session = sessionService.createSession(req);
         return ResponseEntity.ok(toResponse(session));
     }

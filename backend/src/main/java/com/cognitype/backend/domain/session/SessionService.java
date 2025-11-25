@@ -1,9 +1,9 @@
 package com.cognitype.backend.domain.session;
 
 
+import com.cognitype.backend.api.v1.sessions.dto.SessionRequest;
 import com.cognitype.backend.domain.document.Document;
 import com.cognitype.backend.domain.document.DocumentRepository;
-import com.cognitype.backend.api.v1.sessions.dto.CreateSessionRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionCompleteRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionProgressRequest;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,7 +19,7 @@ public class SessionService {
     private final DocumentRepository documentRepository;
 
     @Transactional
-    public Session createSession(CreateSessionRequest req) {
+    public Session createSession(SessionRequest req) {
         Document document = documentRepository.findById(req.documentId())
                 .orElseThrow( () -> new EntityNotFoundException("Document not found: " + req.documentId()));
 
@@ -29,7 +29,7 @@ public class SessionService {
         return sessionRepository.save(session);
     }
 
-    private void initializeSession(Session session, Document document, CreateSessionRequest req) {
+    private void initializeSession(Session session, Document document, SessionRequest req) {
         session.setDocument(document);
         session.setMode(req.mode());
         session.setChunkSize(req.chunkSize());
