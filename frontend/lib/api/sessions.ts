@@ -24,3 +24,16 @@ export async function startSession(req: StartSessionRequest): Promise<{ sessionI
 
     return res.json();
 }
+
+export async function getNextChunk(sessionId: string) : Promise<{ chunkIndex: number; text: string }> {
+    const res = await fetch(`${BASE_URL}/${VERSION}/api/sessions/${sessionId}/next-chunk`, {
+        method: "GET",
+    });
+
+    if(!res.ok) {
+        const msg = await res.text();
+        throw new Error(`Get next chunk failed (${res.status}): ${msg}`)
+    }
+
+    return res.json();
+}

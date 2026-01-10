@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { uploadDocumentText } from "@/lib/api/documents";
 import { startSession } from "@/lib/api/sessions"
+import { getNextChunk } from "@/lib/api/sessions"
 
 export default function SessionNewFlow() {
 
@@ -27,6 +29,19 @@ export default function SessionNewFlow() {
     ): "EASY" | "MODERATE" | "HARD" {
         return difficulty.toUpperCase() as "EASY" | "MODERATE" | "HARD";
     }
+
+    useEffect(() => {
+        if(!sessionId) return;
+        
+        getNextChunk(sessionId)
+            .then(chunk => {
+                setChunkText(chunk.text);
+            })
+            .catch(e => {
+                console.error(e);
+            });
+
+    }, [sessionId]);
 
 
     async function handleUploadText() {
