@@ -1,5 +1,6 @@
 package com.cognitype.backend.domain.session;
 
+import com.cognitype.backend.domain.chunk.Chunk;
 import com.cognitype.backend.domain.document.Document;
 import com.cognitype.backend.domain.session.enums.Difficulty;
 import com.cognitype.backend.domain.session.enums.SessionMode;
@@ -11,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.GenerationType;
@@ -19,6 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "sessions")
@@ -70,6 +73,10 @@ public class Session {
 
     @Column(name = "completed_at")
     private Instant completedAt;
+
+    @OneToMany
+    @JoinColumn(name = "session_id")
+    private List<Chunk> chunks;
 
     @PrePersist
     protected void onCreate() {

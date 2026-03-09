@@ -3,7 +3,7 @@ package com.cognitype.backend.api.v1.sessions.dto;
 import java.time.Instant;
 
 public record SessionResponse(
-        Long id,
+        Long sessionId,
         Long documentId,
         int currentChunkIndex,
         int typedChars,

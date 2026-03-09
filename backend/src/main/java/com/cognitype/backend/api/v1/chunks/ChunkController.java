@@ -39,10 +39,7 @@ public class ChunkController {
     }
 
     private ChunkResponse toResponse(Chunk chunk) {
-        ChunkResponse resp = new ChunkResponse();
-        resp.setId(chunk.getId());
-        resp.setIndex(chunk.getIndexNumber());
-        resp.setText(chunk.getText());
+        ChunkResponse resp = new ChunkResponse(chunk);
         return resp;
     }
 }

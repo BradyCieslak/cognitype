@@ -31,7 +31,12 @@ public class DocumentController {
             throw new RuntimeException("Text is required");
         }
 
-        Document doc = documentService.createFromText(req.title(), req.text());
+        String title = req.title();
+        if (title == null || title.isBlank()) {
+            title = deriveTitleFromText(req.text());
+        }
+
+        Document doc = documentService.createFromText(title, req.text());
         return new DocumentResponse(doc.getId());
     }
 
@@ -46,4 +51,34 @@ public class DocumentController {
                            @RequestBody UpdateTitleRequest req) {
         return documentService.updateTitle(id, req.title());
     }
+
+    private String deriveTitleFromText(String text) {
+        if (text == null) return "Untitled";
+
+        String[] lines = text.split("\\R");
+
+        String candidate = null;
+        for (String line: lines) {
+            if (line != null) {
+                String trimmed = line.trim();
+                if(!trimmed.isBlank()) {
+                    candidate = trimmed;
+                    break;
+                }
+            }
+        }
+
+        if (candidate == null) return "Untitled";
+
+        candidate = candidate.replaceAll("\\s", " ");
+
+        int maxLen = 60;
+        if (candidate.length() > maxLen) {
+            candidate = candidate.substring(0, maxLen).trim();
+        }
+
+        return candidate.isBlank() ? "untitled" : candidate;
+    }
 }
+
+

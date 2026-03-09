@@ -1,10 +1,12 @@
 package com.cognitype.backend.api.v1.sessions;
 
 
+import com.cognitype.backend.api.v1.chunks.ChunkResponse;
 import com.cognitype.backend.api.v1.sessions.dto.SessionCompleteRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionProgressRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionResponse;
+import com.cognitype.backend.domain.chunk.Chunk;
 import com.cognitype.backend.domain.session.Session;
 import com.cognitype.backend.domain.session.SessionService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.fasterxml.jackson.databind.type.LogicalType.Map;
+
 @RestController
 @RequestMapping("/v1/api/sessions")
 @RequiredArgsConstructor
@@ -23,7 +27,7 @@ public class SessionController {
 
     private final SessionService sessionService;
 
-    @PostMapping
+    @PostMapping(consumes = "application/json")
     public ResponseEntity<SessionResponse> createSession(@RequestBody SessionRequest req) {
         Session session = sessionService.createSession(req);
         return ResponseEntity.ok(toResponse(session));
@@ -46,6 +50,13 @@ public class SessionController {
     @GetMapping("/{sessionId}")
     public ResponseEntity<SessionResponse> get(@PathVariable Long sessionId) {
         return ResponseEntity.ok(toResponse(sessionService.getSession(sessionId)));
+    }
+
+    @GetMapping("/{sessionId}/next-chunk")
+    public ResponseEntity<ChunkResponse> getNextChunk(@PathVariable Long sessionId) {
+        Chunk chunk = sessionService.getNextChunk(sessionId);
+        ChunkResponse response = new ChunkResponse(chunk);
+        return ResponseEntity.ok(response);
     }
 
     private SessionResponse toResponse(Session s) {

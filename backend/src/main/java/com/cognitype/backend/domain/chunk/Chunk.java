@@ -30,7 +30,4 @@ public class Chunk {
     @Getter @Setter
     private String text;
 
-    @Getter @Setter
-    private int indexNumber;
-
 }

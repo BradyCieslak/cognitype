@@ -7,7 +7,7 @@ export type StartSessionRequest = {
     mode: "LENGTH" | "TIME";
     chunkSize?: number;
     timeSeconds?: number;
-    difficulty: "EASY" | "MODERATE" | "HARD";
+    difficulty: "LIGHT" | "MODERATE" | "INTENSE";
 };
 
 export async function startSession(req: StartSessionRequest): Promise<{ sessionId: string }> {

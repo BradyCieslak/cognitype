@@ -18,16 +18,16 @@ export default function SessionNewFlow() {
 
     const [mode, setMode] = useState<"length" | "time">("length");
     const [chunkSize, setChunkSize] = useState(200);
-    const [difficulty, setDifficulty] = useState<"easy" | "moderate" | "hard">("moderate");
+    const [difficulty, setDifficulty] = useState<"light" | "moderate" | "intense">("moderate");
 
     function toApiMode(mode: "time" | "length"): "TIME" | "LENGTH" {
         return mode === "time" ? "TIME" : "LENGTH";
     }
 
     function toApiDifficulty(
-        difficulty: "easy" | "moderate" | "hard"
-    ): "EASY" | "MODERATE" | "HARD" {
-        return difficulty.toUpperCase() as "EASY" | "MODERATE" | "HARD";
+        difficulty: "light" | "moderate" | "intense"
+    ): "LIGHT" | "MODERATE" | "INTENSE" {
+        return difficulty.toUpperCase() as "LIGHT" | "MODERATE" | "INTENSE";
     }
 
     useEffect(() => {
@@ -95,6 +95,17 @@ export default function SessionNewFlow() {
         }
     }
 
+    async function setNextChunk() {
+        if(!sessionId) return;
+        getNextChunk(sessionId)
+            .then(chunk => {
+                setChunkText(chunk.text);
+            })
+            .catch(e => {
+                console.error(e);
+            });
+    }
+
     return (
         <section style={{ marginTop: 16 }}>
             <div style={{ marginBottom: 12}}>
@@ -139,16 +150,20 @@ export default function SessionNewFlow() {
                     difficulty{" "}
                     <select
                         value={difficulty}
-                        onChange={(e) => setDifficulty(e.target.value as "easy" | "moderate" | "hard")}
+                        onChange={(e) => setDifficulty(e.target.value as "light" | "moderate" | "intense")}
                     >
-                        <option value="easy">easy</option>
+                        <option value="light">light</option>
                         <option value="moderate">moderate</option>
-                        <option value="hard">hard</option>
+                        <option value="intense">intense</option>
                     </select>
                 </label>
 
                 <button onClick={handleStartSession} disabled={busy || !documentId}>
                     Start Session
+                </button>
+                
+                <button onClick={setNextChunk} disabled={busy || !sessionId}>
+                    Next Chunk
                 </button>
             </div>
 

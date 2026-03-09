@@ -41,7 +41,6 @@ public class ChunkService {
                 String finalChunk = text.substring(index);
                 Chunk c = new Chunk();
                 c.setDocument(doc);
-                c.setIndexNumber(chunks.size());
                 c.setText(finalChunk.trim());
                 chunks.add(c);
                 break;
@@ -62,7 +61,7 @@ public class ChunkService {
     }
 
     public List<Chunk> getChunks(Long documentId) {
-        return chunkRepo.findByDocument_IdOrderByIndexNumber(documentId);
+        return chunkRepo.findByDocument_Id(documentId);
     }
 
     private int skipLeadingWhitespace(String text, int index, int length) {
@@ -87,7 +86,6 @@ public class ChunkService {
     private void addChunk(Document doc, List<Chunk> chunks, String chunkStr) {
         Chunk c = new Chunk();
         c.setDocument(doc);
-        c.setIndexNumber(chunks.size());
         c.setText(chunkStr);
         chunks.add(c);
     }
