@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Michroma } from "next/font/google";
+import NavBar from "@/components/layout/NavBar";
 import "./globals.css";
 
 export const michroma = Michroma({
@@ -20,10 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`antialiased`}
-      >
-        {children}
+      <body className="antialiased min-h-screen" style={{ backgroundColor: 'var(--bg)', color: 'var(--text-primary)' }}>
+        <NavBar />
+        <main className="max-w-4xl mx-auto px-6 py-10">
+          {children}
+        </main>
       </body>
     </html>
   );
