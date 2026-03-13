@@ -21,7 +21,7 @@ public class DocumentService {
     public Document createFromText(String title, String text) {
         var doc = new Document();
         doc.setTitle(title);
-        doc.setText(text);
+        doc.setText(normalizeText(text));
         doc.setCreatedAt(Instant.now());
         return documentRepository.save(doc);
     }
@@ -48,7 +48,7 @@ public class DocumentService {
 
         Document doc = new Document();
         doc.setTitle(filename);
-        doc.setText(text);
+        doc.setText(normalizeText(text));
         doc.setCreatedAt(Instant.now());
         return documentRepository.save(doc);
     }
@@ -96,6 +96,29 @@ public class DocumentService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to read docx file", e);
         }
+    }
+
+    private String normalizeText(String text) {
+        return text
+                .replace("\u00e9", "e")   // é
+                .replace("\u00e8", "e")   // è
+                .replace("\u00ea", "e")   // ê
+                .replace("\u00e0", "a")   // à
+                .replace("\u00e2", "a")   // â
+                .replace("\u00f9", "u")   // ù
+                .replace("\u00fb", "u")   // û
+                .replace("\u00ee", "i")   // î
+                .replace("\u00f4", "o")   // ô
+                .replace("\u00e7", "c")   // ç
+                .replace("\u2014", "--")  // em dash —
+                .replace("\u2013", "-")   // en dash –
+                .replace("\u2018", "'")   // left single quote '
+                .replace("\u2019", "'")   // right single quote '
+                .replace("\u201c", "\"")  // left double quote "
+                .replace("\u201d", "\"")  // right double quote "
+                .replace("\u2026", "...") // ellipsis …
+                .replace("\u00a0", " ")   // non-breaking space
+                .replaceAll("[^\\x00-\\x7F]", ""); // strip remaining non-ASCII
     }
 
 }

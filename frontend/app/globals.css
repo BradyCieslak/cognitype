@@ -5,6 +5,8 @@
     --bg-secondary: #1a1a1a;
     --text-primary: #f0f0f0;
     --text-secondary: #888888;
+    --text-correct: #4f8ef7;
+    --text-incorrect: #f87171;
     --accent: #4f8ef7;
     --border: #2a2a2a;
 }

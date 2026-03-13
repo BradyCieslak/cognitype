@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { uploadDocumentText } from "@/lib/api/documents";
 import { startSession } from "@/lib/api/sessions"
 import { getNextChunk } from "@/lib/api/sessions"
+import { useRouter } from "next/navigation";
 
 export default function SessionNewFlow() {
 
@@ -19,6 +20,8 @@ export default function SessionNewFlow() {
     const [mode, setMode] = useState<"length" | "time">("length");
     const [chunkSize, setChunkSize] = useState(200);
     const [difficulty, setDifficulty] = useState<"light" | "moderate" | "intense">("moderate");
+    
+    const router = useRouter();
 
     function toApiMode(mode: "time" | "length"): "TIME" | "LENGTH" {
         return mode === "time" ? "TIME" : "LENGTH";
@@ -86,7 +89,7 @@ export default function SessionNewFlow() {
             };
 
             const { sessionId } = await startSession(req);
-            setSessionId(sessionId);
+            router.push(`/sessions/${sessionId}`);
             setChunkText(null);
         } catch (e) {
             setError(e instanceof Error ? e.message: String(e));
