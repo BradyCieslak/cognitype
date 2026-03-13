@@ -22,29 +22,19 @@ export default function SessionPage() {
     const startTimeRef = useRef<number | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    function loadNextChunk() {
-        setLoading(true);
-        setStage("typing");
-        setCurrentWordIndex(0);
-        setCurrentInput("");
-        setCompletedWords([]);
-        startTimeRef.current = null;
+    const numLines = 3;
+    const fontSize = 24;
 
-        getNextChunk(sessionId)
-            .then(chunk => {
-                setChunkText(chunk.text);
-                const tokens = chunk.text
-                    .split(/( |\n)/)
-                    .filter(t => t !== " " && t.length > 0)
-                    .map(t => t === "\n" ? "↵" : t);
-                setWords(tokens);
-                setLoading(false);
-            })
-            .catch(e => {
-                setError(e instanceof Error ? e.message : String(e));
-                setLoading(false);
-            });
-    }
+    const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
+    const lineHeightRef = useRef<number>(fontSize * 1.5);
+    const prevWordTopRef = useRef<number>(0);
+    const [currentLine, setCurrentLine] = useState(0);
+
+    const [hasScrolled, setHasScrolled] = useState(false);
+    const topFade = hasScrolled ? 15 : 0;
+
+    const lineHeight = lineHeightRef.current;
+    const translateY = currentLine <= 0 ? 0 : -((currentLine - 1) * lineHeight);
 
     useEffect(() => {
         loadNextChunk();
@@ -57,21 +47,64 @@ export default function SessionPage() {
     }, [loading, stage]);
 
     useEffect(() => {
-    if (stage !== "questions") return;
+        if (stage !== "questions") return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Enter") {
-            loadNextChunk();
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+                loadNextChunk();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [stage]);
+
+    useEffect(() => {
+        if (currentLine > 0) {
+            setHasScrolled(true);
         }
-    };
+    }, [currentLine]);
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-}, [stage]);
+    useEffect(() => {
+        if (!words.length || loading) return;
+        const tops = wordRefs.current.filter(r => r !== null).slice(0, 20).map(r => r!.offsetTop);
+        const uniqueTops = [...new Set(tops)].sort((a, b) => a - b);
+        if (uniqueTops.length > 1) {
+            lineHeightRef.current = uniqueTops[1] - uniqueTops[0];
+        }
+    }, [words, loading]);
+
+    function loadNextChunk() {
+    setLoading(true);
+    setStage("typing");
+    setHasScrolled(false);
+    startTimeRef.current = null;
+    prevWordTopRef.current = 0;
+    wordRefs.current = [];
+
+    getNextChunk(sessionId)
+        .then(chunk => {
+            setChunkText(chunk.text);
+            const tokens = chunk.text
+                .split(/( |\n)/)
+                .filter(t => t !== " " && t.length > 0)
+                .map(t => t === "\n" ? "↵" : t)
+                .filter((t, i, arr) => !(t === "↵" && arr[i - 1] === "↵"));
+            setWords(tokens);
+            setCompletedWords([]);
+            setCurrentWordIndex(0);
+            setCurrentLine(0);
+            setCurrentInput("");
+            setLoading(false);
+        })
+        .catch(e => {
+            setError(e instanceof Error ? e.message : String(e));
+            setLoading(false);
+        });
+}
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
         if (stage !== "typing" || !words.length) return;
-
         if (!startTimeRef.current) {
             startTimeRef.current = Date.now();
         }
@@ -80,8 +113,8 @@ export default function SessionPage() {
 
         if (key === " ") {
             e.preventDefault();
-
             if (words[currentWordIndex] === "↵") return;
+            if (currentInput.length === 0) return;
 
             const next = currentWordIndex + 1;
             setCompletedWords(prev => [...prev, currentInput]);
@@ -91,82 +124,126 @@ export default function SessionPage() {
                 setStage("questions");
             } else {
                 setCurrentWordIndex(next);
+                const prevTop = wordRefs.current[currentWordIndex]?.offsetTop ?? 0;
+                const nextTop = wordRefs.current[next]?.offsetTop ?? 0;
+                if (nextTop > prevTop && words[next] !== "↵") {
+                    setCurrentLine(prev => prev + 1);
+                }
+                prevWordTopRef.current = nextTop;
             }
-
         } else if (key === "Enter") {
-            if (words[currentWordIndex] === "↵") {
-                const next = currentWordIndex + 1;
-                setCompletedWords(prev => [...prev, "↵"]);
+            if (words[currentWordIndex] === "↵" || words[currentWordIndex + 1] === "↵") {
+                if (currentInput.length === 0) return;
+                const next = currentWordIndex + 2;
+                setCompletedWords(prev => [...prev, currentInput, "↵"]);
                 setCurrentInput("");
+                setCurrentLine(prev => prev + 1);
+
                 if (next >= words.length) {
                     setStage("questions");
                 } else {
                     setCurrentWordIndex(next);
                 }
             }
-        }else if (key === "Backspace") {
+        } else if (key === "Tab") {
+            e.preventDefault();
+            setCurrentWordIndex(0);
+            setCurrentInput("");
+            setCompletedWords([]);
+            setHasScrolled(false);
+            setCurrentLine(0);
+            startTimeRef.current = null;
+            prevWordTopRef.current = 0;
+        } else if (key === "Backspace") {
             if (currentInput.length > 0) {
                 setCurrentInput(prev => prev.slice(0, -1));
             } else if (currentWordIndex > 0) {
                 const prevIndex = currentWordIndex - 1;
                 const prevTyped = completedWords[prevIndex];
+                
+                const currentTop = wordRefs.current[currentWordIndex]?.offsetTop ?? 0;
+                const prevTop = wordRefs.current[prevIndex]?.offsetTop ?? 0;
+                if (prevTop < currentTop) {
+                    setCurrentLine(prev => Math.max(0, prev - 1));
+                }
+
                 setCurrentWordIndex(prevIndex);
                 setCurrentInput(prevTyped);
                 setCompletedWords(prev => prev.slice(0, -1));
             }
-
         } else if (key.length === 1) {
-            setCurrentInput(prev => prev + key);
+                setCurrentInput(prev => prev + key);
         }
 
     }, [stage, words, currentWordIndex, currentInput, completedWords]);
 
-function renderWord(word: string, typedWord: string, isActive: boolean, index: number) {
-    const chars = word.split("").map((char, i) => {
-        let color = "var(--text-secondary)";
-
-        if (i < typedWord.length) {
-            color = typedWord[i] === char ? "var(--text-correct)" : "var(--text-incorrect)";
+    function renderWord(word: string, typedWord: string, isActive: boolean, index: number) {
+        if (word === "↵") {
+            return (
+                <span
+                    key={index}
+                    ref={el => { wordRefs.current[index] = el; }}
+                >
+                    <span style={{
+                        color: index < currentWordIndex ? 'var(--text-correct)' : 'var(--text-secondary)',
+                        borderLeft: isActive ? '2px solid var(--accent)' : 'none'
+                    }}>
+                        ↵
+                    </span>
+                    <br />
+                </span>
+            );
         }
 
-        const isCursorBefore = isActive && i === typedWord.length;
-        const isCursorAfter = isActive && typedWord.length >= word.length && i === word.length - 1;
+        const chars = word.split("").map((char, i) => {
+            let color = "var(--text-secondary)";
+
+            if (i < typedWord.length) {
+                color = typedWord[i] === char ? "var(--text-correct)" : "var(--text-incorrect)";
+            }
+
+            const isCursorBefore = isActive && i === typedWord.length;
+            const isCursorAfter = isActive && typedWord.length >= word.length && i === word.length - 1;
+
+            return (
+                <span
+                    key={i}
+                    style={{
+                        color,
+                        borderLeft: isCursorBefore ? "2px solid var(--accent)" : "none",
+                        borderRight: isCursorAfter ? "2px solid var(--accent)" : "none",
+                        transition: "color 0.05s",
+                    }}
+                >
+                    {char}
+                </span>
+            );
+        });
+
+        const extras = typedWord.slice(word.length).split("").map((char, i) => (
+            <span key={`extra-${i}`} style={{ color: "var(--text-incorrect" }}>
+                {char}
+            </span>
+        ));
 
         return (
             <span
-                key={i}
-                style={{
-                    color,
-                    borderLeft: isCursorBefore ? "2px solid var(--accent)" : "none",
-                    borderRight: isCursorAfter ? "2px solid var(--accent)" : "none",
-                    transition: "color 0.05s",
-                }}
+                key={index}
+                ref={el => { wordRefs.current[index] = el; }}
+                className={`inline-block ${words[index + 1] === "↵" ? "mr-0" : "mr-3"}`}
             >
-                {char}
+                {chars}
+                {extras}
             </span>
         );
-    });
-
-    const extras = typedWord.slice(word.length).split("").map((char, i) => (
-        <span key={`extra-${i}`} style={{ color: "var(--text-incorrect" }}>
-            {char}
-        </span>
-    ));
-
-    return (
-        <span key={index} className="inline-block mr-3">
-            {chars}
-            {extras}
-        </span>
-    );
-}
+    }
 
     function renderChunk() {
         return words.map((word, i) => {
             const isCompleted = i < currentWordIndex;
             const isActive = i === currentWordIndex;
             const typedWord = isCompleted
-                ? completedWords[i]
+                ? (completedWords[i] ?? "")
                 : isActive
                 ? currentInput
                 : "";
@@ -194,16 +271,48 @@ function renderWord(word: string, typedWord: string, isActive: boolean, index: n
         <div className="flex flex-col gap-8 max-w-6xl mx-auto min-h-[calc(80vh-64px)] justify-center">
 
             {stage === "typing" && (
-                <>
+                <div
+                    style={{
+                        height: `${lineHeight * numLines + fontSize + 4}px`,
+                        width: '100%',
+                        overflow: 'hidden',
+                        cursor: 'text',
+                        position: 'relative',
+                    }}
+                    onClick={() => containerRef.current?.focus()}
+                >
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: `linear-gradient(to bottom, transparent 0%, transparent 85%, var(--bg) 100%)`,
+                        pointerEvents: 'none',
+                        zIndex: 1,
+                    }} />
+
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: `linear-gradient(to bottom, var(--bg) 0%, transparent 15%, transparent 100%)`,
+                        pointerEvents: 'none',
+                        zIndex: 1,
+                        opacity: hasScrolled ? 1 : 0,
+                        transition: 'opacity 0.15s ease',
+                    }} />
+
                     <div
                         ref={containerRef}
                         tabIndex={0}
                         onKeyDown={handleKeyDown}
-                        className="text-xl leading-relaxed font-mono p-6 outline-none cursor-text"
+                        className="leading-relaxed font-mono outline-none"
+                        style={{
+                            transform: `translateY(${translateY}px)`,
+                            transition: 'transform 0.15s ease',
+                            fontSize: `${fontSize}px`,
+                        }}
                     >
                         {renderChunk()}
                     </div>
-                </>
+                </div>
             )}
 
             {stage === "questions" && (
