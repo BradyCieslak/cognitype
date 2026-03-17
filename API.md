@@ -134,3 +134,14 @@ Request:
 
 Response (sets HTTP-only auth_token cookie):
 {"userId": 1, "email": "user@example.com"}
+
+## 13. Get Current User
+**GET /v1/api/auth/profile**
+
+Requires valid auth_token cookie.
+
+Response:
+{"userId": 1, "email": "user@example.com"}
+
+Error (not logged in):
+401 Unauthorized

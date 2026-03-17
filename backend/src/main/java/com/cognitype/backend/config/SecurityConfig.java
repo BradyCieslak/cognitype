@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/api/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/v1/api/auth/**").permitAll()
                         .anyRequest().authenticated())
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.disable()))
