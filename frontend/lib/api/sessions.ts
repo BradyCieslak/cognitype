@@ -15,6 +15,7 @@ export async function startSession(req: StartSessionRequest): Promise<{ sessionI
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(req),
+        credentials: 'include',
     });
 
     if(!res.ok) {
@@ -28,6 +29,7 @@ export async function startSession(req: StartSessionRequest): Promise<{ sessionI
 export async function getNextChunk(sessionId: string) : Promise<{ chunkIndex: number; text: string }> {
     const res = await fetch(`${BASE_URL}/${VERSION}/api/sessions/${sessionId}/next-chunk`, {
         method: "GET",
+        credentials: 'include',
     });
 
     if(!res.ok) {

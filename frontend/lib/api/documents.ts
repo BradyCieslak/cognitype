@@ -6,6 +6,7 @@ export async function uploadDocumentText(text: string): Promise<{ documentId: st
         method: "POST",
         headers: {"Content-Type": "application/json" },
         body: JSON.stringify({ text }),
+        credentials: 'include',
     });
 
     // throws error if backend doesn't return usable response

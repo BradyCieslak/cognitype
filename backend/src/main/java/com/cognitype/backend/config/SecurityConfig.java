@@ -60,16 +60,18 @@ public class SecurityConfig {
                                             FilterChain filterChain)
                     throws ServletException, IOException {
 
-                String authHeader = request.getHeader("Authorization");
+                String token = null;
 
-                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                    filterChain.doFilter(request, response);
-                    return;
+                if (request.getCookies() != null) {
+                    for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                        if ("auth_token".equals(cookie.getName())) {
+                            token = cookie.getValue();
+                            break;
+                        }
+                    }
                 }
 
-                String token = authHeader.substring(7);
-
-                if (!jwtService.isTokenValid(token)) {
+                if (token == null || !jwtService.isTokenValid(token)) {
                     filterChain.doFilter(request, response);
                     return;
                 }

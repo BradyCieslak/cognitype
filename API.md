@@ -1,101 +1,136 @@
 # Cognitype API (MVP)
 
+All endpoints except `/v1/api/auth/register` and `/v1/api/auth/login` require authentication via the `auth_token` HTTP-only cookie, which is set automatically on login or register.
+
+---
+
 ## 1. Upload Document
 **POST /v1/api/documents**
 
-Uploads text or PDF and stores it.
+Request (text):
+{"title": "My Document", "text": "..."}
+
+Request (file upload):
+- Multipart form with file field
+- Supported types: .pdf, .txt, .docx
+
+Response:
+{"documentId": 1}
+
+---
+
+## 2. Get Document
+**GET /v1/api/documents/{id}**
+
+Response:
+{"id": 1, "title": "My Document", "text": "...", "createdAt": "..."}
+
+---
+
+## 3. Update Document Title
+**PATCH /v1/api/documents/{id}/title**
 
 Request:
-- If PDF: multipart upload with file
-- If text: JSON `{ "text": "..." }`
+{"title": "New Title"}
 
 Response:
-{"documentId": "abc123"}
-
+{"id": 1, "title": "New Title", "text": "...", "createdAt": "..."}
 
 ---
 
-## 2. Start a Typing Session
-**POST v1/api/sessions**
-
-Request:
-{
-    "documentId": "abc123",
-    "mode": "length", // or "time"
-    "chunkSize": 200, // required if mode = length
-    "timeSeconds": 30, // required if mode = time
-    "difficulty": "moderate" // affects # of questions
-}
-
-Response:
-{"sessionId": "xyz789"}
-
-
----
-
-## 3. Get Next Chunk
-**GET v1/api/sessions/{sessionId}/next-chunk**
-
-Response:
-{
-    "chunkIndex": 0,
-    "text": "This is the part of the document the user must type."
-}
-
-
----
-
-## 4. Submit Typing Progress
-**POST v1/api/sessions/{sessionId}/progress**
+## 4. Start a Typing Session
+**POST /v1/api/sessions**
 
 Request:
 {
-    "typedChars": 150,
-    "elapsedMs": 12000
+    "documentId": 1,
+    "mode": "LENGTH",
+    "chunkSize": 200,
+    "timeSeconds": null,
+    "difficulty": "MODERATE"
 }
 
 Response:
-{"ok": true}
-
+{"id": 1, "documentId": 1, "currentChunkIndex": 0, "typedChars": 0, "elapsedMs": 0, "accuracy": 0.0, "completed": false, "createdAt": "...", "completedAt": null}
 
 ---
 
-## 5. Get Comprehension Questions
-**GET v1/api/sessions/{sessionId}/questions?chunkIndex=0**
+## 5. Get Next Chunk
+**GET /v1/api/sessions/{sessionId}/next-chunk**
 
 Response:
-{
-    "questionId": "q001",
-    "prompt": "What is the main idea?"
-}
-
+{"id": 1, "index": 0, "text": "This is the part of the document the user must type."}
 
 ---
 
-## 6. Submit Answer
-**POST v1/api/sessions/{sessionId}/answer**
+## 6. Submit Typing Progress
+**POST /v1/api/sessions/{sessionId}/progress**
 
 Request:
-{
-    "questionId": "q001",
-    "answerText": "The author introduces the topic"
-}
+{"typedCharsDelta": 150, "elapsedMsDelta": 12000}
 
 Response:
-{
-    "correct": "true",
-    "feedback": "Yes, you understood this section."
-}
-
+{"id": 1, "documentId": 1, "currentChunkIndex": 0, "typedChars": 150, "elapsedMs": 12000, "accuracy": 0.0, "completed": false, "createdAt": "...", "completedAt": null}
 
 ---
 
-## 7. End Session
-***POST v1/api/sessions/{sessionId}/complete**
+## 7. Get Session
+**GET /v1/api/sessions/{sessionId}**
 
 Response:
-{"summary": {
-    "accuracy": 92,
-    "wpm": 64,
-    "totalTimeSec": 183
-}}
+{"id": 1, "documentId": 1, "currentChunkIndex": 0, "typedChars": 150, "elapsedMs": 12000, "accuracy": 0.0, "completed": false, "createdAt": "...", "completedAt": null}
+
+---
+
+## 8. Complete a Session
+**POST /v1/api/sessions/{sessionId}/complete**
+
+Request:
+{"finalAccuracy": 95.3}
+
+Response:
+{"id": 1, "documentId": 1, "currentChunkIndex": 0, "typedChars": 500, "elapsedMs": 60000, "accuracy": 95.3, "completed": true, "createdAt": "...", "completedAt": "..."}
+
+---
+
+## 9. Get Chunks for Document
+**GET /v1/api/documents/{documentId}/chunks**
+
+Response:
+[
+    {"id": 1, "index": 0, "text": "First chunk text..."},
+    {"id": 2, "index": 1, "text": "Second chunk text..."}
+]
+
+---
+
+## 10. Generate Chunks for Document
+**POST /v1/api/documents/{documentId}/chunks?size=200**
+
+Response:
+[
+    {"id": 1, "index": 0, "text": "First chunk text..."},
+    {"id": 2, "index": 1, "text": "Second chunk text..."}
+]
+
+---
+
+## 11. Register
+**POST /v1/api/auth/register**
+
+Request:
+{"email": "user@example.com", "password": "yourpassword"}
+
+Response (sets HTTP-only auth_token cookie):
+{"userId": 1, "email": "user@example.com"}
+
+---
+
+## 12. Login
+**POST /v1/api/auth/login**
+
+Request:
+{"email": "user@example.com", "password": "yourpassword"}
+
+Response (sets HTTP-only auth_token cookie):
+{"userId": 1, "email": "user@example.com"}

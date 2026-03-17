@@ -1,6 +1,8 @@
 package com.cognitype.backend.api.v1.auth;
 
 import com.cognitype.backend.domain.user.AuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,12 +18,28 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest req) {
-        return ResponseEntity.ok(authService.register(req));
+    public ResponseEntity<UserInfo> register(@RequestBody RegisterRequest req,
+                                             HttpServletResponse response) {
+        AuthResponse auth = authService.register(req);
+        addAuthCookie(response, auth.token());
+        return ResponseEntity.ok(new UserInfo(auth.userId(), auth.email()));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
-        return ResponseEntity.ok(authService.login(req));
+    public ResponseEntity<UserInfo> login(@RequestBody LoginRequest req,
+                                          HttpServletResponse response) {
+        AuthResponse auth = authService.login(req);
+        addAuthCookie(response, auth.token());
+        return ResponseEntity.ok(new UserInfo(auth.userId(), auth.email()));
     }
+
+    private void addAuthCookie(HttpServletResponse response, String token) {
+        Cookie cookie = new Cookie("auth_token", token);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24 * 7); // 7 days
+        response.addCookie(cookie);
+    }
+
+    public record UserInfo(Long userId, String email) {}
 }
