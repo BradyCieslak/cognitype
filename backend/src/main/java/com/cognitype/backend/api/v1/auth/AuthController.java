@@ -53,4 +53,14 @@ public class AuthController {
         }
         return ResponseEntity.ok(new UserInfo(user.getId(), user.getEmail()));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("auth_token", "");
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        return ResponseEntity.ok().build();
+    }
 }

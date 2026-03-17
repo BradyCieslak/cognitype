@@ -26,25 +26,26 @@ export default function SessionPage() {
     const fontSize = 24;
 
     const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
-    const lineHeightRef = useRef<number>(fontSize * 1.5);
+    const [lineHeight, setLineHeight] = useState<number>(fontSize * 1.5);
     const prevWordTopRef = useRef<number>(0);
     const [currentLine, setCurrentLine] = useState(0);
 
-    const [hasScrolled, setHasScrolled] = useState(false);
-    const topFade = hasScrolled ? 15 : 0;
+    const fadeZone = lineHeight;
+    const containerHeight = lineHeight > 0 ? lineHeight * (numLines + 1) : fontSize * (numLines + 1);
+    const fadePercent = Math.round((fadeZone / containerHeight) * 100);
+    const translateY = -(currentLine * lineHeight) + fadeZone;
 
-    const lineHeight = lineHeightRef.current;
-    const translateY = currentLine <= 0 ? 0 : -((currentLine - 1) * lineHeight);
+    const [measured, setMeasured] = useState(false);
 
     useEffect(() => {
         loadNextChunk();
     }, [sessionId]);
 
     useEffect(() => {
-        if (!loading && stage === "typing") {
+        if (!loading && stage === "typing" && measured) {
             containerRef.current?.focus();
         }
-    }, [loading, stage]);
+    }, [loading, stage, measured]);
 
     useEffect(() => {
         if (stage !== "questions") return;
@@ -60,47 +61,48 @@ export default function SessionPage() {
     }, [stage]);
 
     useEffect(() => {
-        if (currentLine > 0) {
-            setHasScrolled(true);
-        }
-    }, [currentLine]);
-
-    useEffect(() => {
         if (!words.length || loading) return;
         const tops = wordRefs.current.filter(r => r !== null).slice(0, 20).map(r => r!.offsetTop);
         const uniqueTops = [...new Set(tops)].sort((a, b) => a - b);
         if (uniqueTops.length > 1) {
-            lineHeightRef.current = uniqueTops[1] - uniqueTops[0];
+            setLineHeight(uniqueTops[1] - uniqueTops[0]);
         }
     }, [words, loading]);
 
-    function loadNextChunk() {
-    setLoading(true);
-    setStage("typing");
-    setHasScrolled(false);
-    startTimeRef.current = null;
-    prevWordTopRef.current = 0;
-    wordRefs.current = [];
+    useEffect(() => {
+        if (!loading && words.length > 0) {
+            setMeasured(true);
+        }
+    }, [lineHeight]);
 
-    getNextChunk(sessionId)
-        .then(chunk => {
-            setChunkText(chunk.text);
-            const tokens = chunk.text
-                .split(/( |\n)/)
-                .filter(t => t !== " " && t.length > 0)
-                .map(t => t === "\n" ? "↵" : t)
-                .filter((t, i, arr) => !(t === "↵" && arr[i - 1] === "↵"));
-            setWords(tokens);
-            setCompletedWords([]);
-            setCurrentWordIndex(0);
-            setCurrentLine(0);
-            setCurrentInput("");
-            setLoading(false);
-        })
-        .catch(e => {
-            setError(e instanceof Error ? e.message : String(e));
-            setLoading(false);
-        });
+    function loadNextChunk() {
+        setLoading(true);
+        setStage("typing");
+        startTimeRef.current = null;
+        prevWordTopRef.current = 0;
+        wordRefs.current = [];
+        setLineHeight(0);
+        setMeasured(false)
+
+        getNextChunk(sessionId)
+            .then(chunk => {
+                setChunkText(chunk.text);
+                const tokens = chunk.text
+                    .split(/( |\n)/)
+                    .filter(t => t !== " " && t.length > 0)
+                    .map(t => t === "\n" ? "↵" : t)
+                    .filter((t, i, arr) => !(t === "↵" && arr[i - 1] === "↵"));
+                setWords(tokens);
+                setCompletedWords([]);
+                setCurrentWordIndex(0);
+                setCurrentLine(0);
+                setCurrentInput("");
+                setLoading(false);
+            })
+            .catch(e => {
+                setError(e instanceof Error ? e.message : String(e));
+                setLoading(false);
+            });
 }
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -150,7 +152,6 @@ export default function SessionPage() {
             setCurrentWordIndex(0);
             setCurrentInput("");
             setCompletedWords([]);
-            setHasScrolled(false);
             setCurrentLine(0);
             startTimeRef.current = null;
             prevWordTopRef.current = 0;
@@ -273,31 +274,17 @@ export default function SessionPage() {
             {stage === "typing" && (
                 <div
                     style={{
-                        height: `${lineHeight * numLines + fontSize + 4}px`,
+                        height: `${containerHeight}px`,
                         width: '100%',
+                        visibility: measured ? 'visible' : 'hidden',
                         overflow: 'hidden',
                         cursor: 'text',
                         position: 'relative',
+                        maskImage: `linear-gradient(to bottom, transparent 0%, black ${fadePercent}%, black 85%, transparent 100%)`,
+                        WebkitMaskImage: `linear-gradient(to bottom, transparent 0%, black ${fadePercent}%, black 85%, transparent 100%)`,
                     }}
                     onClick={() => containerRef.current?.focus()}
                 >
-                    <div style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: `linear-gradient(to bottom, transparent 0%, transparent 85%, var(--bg) 100%)`,
-                        pointerEvents: 'none',
-                        zIndex: 1,
-                    }} />
-
-                    <div style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: `linear-gradient(to bottom, var(--bg) 0%, transparent 15%, transparent 100%)`,
-                        pointerEvents: 'none',
-                        zIndex: 1,
-                        opacity: hasScrolled ? 1 : 0,
-                        transition: 'opacity 0.15s ease',
-                    }} />
 
                     <div
                         ref={containerRef}

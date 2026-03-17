@@ -1,7 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import Sidebar from "@/components/layout/Sidebar";
 
 export default function NavBar() {
+
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
     return (
+        <>
         <nav
             className="w-full px-8 py-4 flex items-center justify-between border-b"
             style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
@@ -33,12 +41,17 @@ export default function NavBar() {
                     ⚙️
                 </Link>
                 <button
+                    onClick={() => setSidebarOpen(true)}
                     className="text-xl hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
                     title="Account"
                 >
                     👤
                 </button>
             </div>
         </nav>
+
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        </>
     );
 }
