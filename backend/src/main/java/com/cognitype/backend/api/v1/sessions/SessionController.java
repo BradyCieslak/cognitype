@@ -9,14 +9,18 @@ import com.cognitype.backend.api.v1.sessions.dto.SessionResponse;
 import com.cognitype.backend.domain.chunk.Chunk;
 import com.cognitype.backend.domain.session.Session;
 import com.cognitype.backend.domain.session.SessionService;
+import com.cognitype.backend.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 
@@ -28,8 +32,10 @@ public class SessionController {
     private final SessionService sessionService;
 
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<SessionResponse> createSession(@RequestBody SessionRequest req) {
-        Session session = sessionService.createSession(req);
+    public ResponseEntity<SessionResponse> createSession(
+            @RequestBody SessionRequest req,
+            @AuthenticationPrincipal User user) {
+        Session session = sessionService.createSession(req, user);
         return ResponseEntity.ok(toResponse(session));
     }
 
@@ -57,6 +63,20 @@ public class SessionController {
         Chunk chunk = sessionService.getNextChunk(sessionId);
         ChunkResponse response = new ChunkResponse(chunk);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<SessionResponse>> getUserSessions(
+            @AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(
+                sessionService.getSessionsForUser(user)
+                        .stream()
+                        .map(this::toResponse)
+                        .toList()
+        );
     }
 
     private SessionResponse toResponse(Session s) {

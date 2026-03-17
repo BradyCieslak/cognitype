@@ -8,6 +8,7 @@ import com.cognitype.backend.domain.document.Document;
 import com.cognitype.backend.domain.document.DocumentRepository;
 import com.cognitype.backend.api.v1.sessions.dto.SessionCompleteRequest;
 import com.cognitype.backend.api.v1.sessions.dto.SessionProgressRequest;
+import com.cognitype.backend.domain.user.User;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +26,13 @@ public class SessionService {
     private final ChunkService chunkService;
 
     @Transactional
-    public Session createSession(SessionRequest req) {
+    public Session createSession(SessionRequest req, User user) {
         Document document = documentRepository.findById(req.documentId())
                 .orElseThrow( () -> new EntityNotFoundException("Document not found: " + req.documentId()));
 
         Session session = new Session();
         initializeSession(session, document, req);
+        session.setUser(user);
 
         return sessionRepository.save(session);
     }
@@ -74,6 +76,11 @@ public class SessionService {
     public Session getSession(Long id) {
         return sessionRepository.findById(id)
                 .orElseThrow( () -> new EntityNotFoundException("Session not found: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Session> getSessionsForUser(User user) {
+        return sessionRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
     public Chunk getNextChunk(Long sessionId) {

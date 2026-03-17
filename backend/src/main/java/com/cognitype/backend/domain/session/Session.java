@@ -4,6 +4,7 @@ import com.cognitype.backend.domain.chunk.Chunk;
 import com.cognitype.backend.domain.document.Document;
 import com.cognitype.backend.domain.session.enums.Difficulty;
 import com.cognitype.backend.domain.session.enums.SessionMode;
+import com.cognitype.backend.domain.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -82,6 +83,10 @@ public class Session {
     protected void onCreate() {
         this.createdAt = Instant.now();
     }
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public void applyProgress(int typedCharsDelta, long elapsedMsDelta) {
         this.typedChars += typedCharsDelta;
