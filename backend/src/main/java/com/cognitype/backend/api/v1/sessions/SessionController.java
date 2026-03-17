@@ -83,6 +83,7 @@ public class SessionController {
         return new SessionResponse(
                 s.getId(),
                 s.getDocument().getId(),
+                s.getDocument().getTitle(),
                 s.getCurrentChunkIndex(),
                 s.getTypedChars(),
                 s.getElapsedMs(),

@@ -10,6 +10,19 @@ export type StartSessionRequest = {
     difficulty: "LIGHT" | "MODERATE" | "INTENSE";
 };
 
+export type SessionResponse = {
+    id: number;
+    documentId: number;
+    documentTitle: string;
+    currentChunkIndex: number;
+    typedChars: number;
+    elapsedMs: number;
+    accuracy: number;
+    completed: boolean;
+    createdAt: string;
+    completedAt: string | null;
+};
+
 export async function startSession(req: StartSessionRequest): Promise<{ sessionId: string }> {
     const res = await fetch(`${BASE_URL}/${VERSION}/api/sessions`, {
         method: "POST",
@@ -35,6 +48,20 @@ export async function getNextChunk(sessionId: string) : Promise<{ chunkIndex: nu
     if(!res.ok) {
         const msg = await res.text();
         throw new Error(`Get next chunk failed (${res.status}): ${msg}`)
+    }
+
+    return res.json();
+}
+
+export async function getUserSessions(): Promise<SessionResponse[]> {
+    const res = await fetch(`${BASE_URL}/${VERSION}/api/sessions`, {
+        method: "GET",
+        credentials: 'include',
+    });
+
+    if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(`Failed to fetch sessions (${res.status}): ${msg}`);
     }
 
     return res.json();

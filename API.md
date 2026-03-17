@@ -51,7 +51,7 @@ Request:
 }
 
 Response:
-{"id": 1, "documentId": 1, "currentChunkIndex": 0, "typedChars": 0, "elapsedMs": 0, "accuracy": 0.0, "completed": false, "createdAt": "...", "completedAt": null}
+{"id": 1, "documentId": 1, "documentTitle": "My Document", "currentChunkIndex": 0, "typedChars": 0, "elapsedMs": 0, "accuracy": 0.0, "completed": false, "createdAt": "...", "completedAt": null}
 
 ---
 
@@ -78,7 +78,7 @@ Response:
 **GET /v1/api/sessions/{sessionId}**
 
 Response:
-{"id": 1, "documentId": 1, "currentChunkIndex": 0, "typedChars": 150, "elapsedMs": 12000, "accuracy": 0.0, "completed": false, "createdAt": "...", "completedAt": null}
+{"id": 1, "documentId": 1, "documentTitle": "My Document", "currentChunkIndex": 0, "typedChars": 0, "elapsedMs": 0, "accuracy": 0.0, "completed": false, "createdAt": "...", "completedAt": null}
 
 ---
 
@@ -89,7 +89,7 @@ Request:
 {"finalAccuracy": 95.3}
 
 Response:
-{"id": 1, "documentId": 1, "currentChunkIndex": 0, "typedChars": 500, "elapsedMs": 60000, "accuracy": 95.3, "completed": true, "createdAt": "...", "completedAt": "..."}
+{"id": 1, "documentId": 1, "documentTitle": "My Document", "currentChunkIndex": 0, "typedChars": 0, "elapsedMs": 0, "accuracy": 0.0, "completed": false, "createdAt": "...", "completedAt": null}
 
 ---
 
@@ -135,13 +135,3 @@ Request:
 Response (sets HTTP-only auth_token cookie):
 {"userId": 1, "email": "user@example.com"}
 
-## 13. Get Current User
-**GET /v1/api/auth/profile**
-
-Requires valid auth_token cookie.
-
-Response:
-{"userId": 1, "email": "user@example.com"}
-
-Error (not logged in):
-401 Unauthorized
