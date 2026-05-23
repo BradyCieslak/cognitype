@@ -4,14 +4,13 @@ const VERSION = "v1"
 
 export type StartSessionRequest = {
     documentId: string;
-    mode: "LENGTH" | "TIME";
     chunkSize?: number;
     timeSeconds?: number;
     difficulty: "LIGHT" | "MODERATE" | "INTENSE";
 };
 
 export type SessionResponse = {
-    id: number;
+    sessionId: number;
     documentId: number;
     documentTitle: string;
     currentChunkIndex: number;
@@ -39,15 +38,17 @@ export async function startSession(req: StartSessionRequest): Promise<{ sessionI
     return res.json();
 }
 
-export async function getNextChunk(sessionId: string) : Promise<{ chunkIndex: number; text: string }> {
-    const res = await fetch(`${BASE_URL}/${VERSION}/api/sessions/${sessionId}/next-chunk`, {
-        method: "GET",
+export async function seekChunk(sessionId: string, chunkIndex: number): Promise<{ id: number; text: string }> {
+    const res = await fetch(`${BASE_URL}/${VERSION}/api/sessions/${sessionId}/seek`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chunkIndex }),
         credentials: 'include',
     });
 
-    if(!res.ok) {
+    if (!res.ok) {
         const msg = await res.text();
-        throw new Error(`Get next chunk failed (${res.status}): ${msg}`)
+        throw new Error(`Seek failed (${res.status}): ${msg}`);
     }
 
     return res.json();

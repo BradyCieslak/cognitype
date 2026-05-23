@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { getNextChunk } from "@/lib/api/sessions";
+import { seekChunk } from "@/lib/api/sessions";
 
 type ChunkStage = "typing" | "questions";
 
@@ -37,9 +37,35 @@ export default function SessionPage() {
 
     const [measured, setMeasured] = useState(false);
 
+    const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
+
     useEffect(() => {
-        loadNextChunk();
-    }, [sessionId]);
+
+        if(!sessionId) return;
+
+        const init = async () => {
+            if (!sessionId) return;
+
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"}/v1/api/sessions/${sessionId}`,
+                { credentials: 'include' }
+            );
+
+            if (!res.ok) {
+                loadNextChunk(0);
+                return;
+            }
+
+            const session = await res.json();
+            if (session.completed) {
+                loadNextChunk(0);
+            } else {
+                loadNextChunk(session.currentChunkIndex);
+            }
+        };
+
+        init();
+}, [sessionId]);
 
     useEffect(() => {
         if (!loading && stage === "typing" && measured) {
@@ -52,7 +78,7 @@ export default function SessionPage() {
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Enter") {
-                loadNextChunk();
+                loadNextChunk(currentChunkIndex);
             }
         };
 
@@ -75,34 +101,35 @@ export default function SessionPage() {
         }
     }, [lineHeight]);
 
-    function loadNextChunk() {
-        setLoading(true);
-        setStage("typing");
-        startTimeRef.current = null;
-        prevWordTopRef.current = 0;
-        wordRefs.current = [];
-        setLineHeight(0);
-        setMeasured(false)
+function loadNextChunk(index: number = currentChunkIndex) {
+    setLoading(true);
+    setStage("typing");
+    startTimeRef.current = null;
+    prevWordTopRef.current = 0;
+    wordRefs.current = [];
+    setLineHeight(0);
+    setMeasured(false);
 
-        getNextChunk(sessionId)
-            .then(chunk => {
-                setChunkText(chunk.text);
-                const tokens = chunk.text
-                    .split(/( |\n)/)
-                    .filter(t => t !== " " && t.length > 0)
-                    .map(t => t === "\n" ? "↵" : t)
-                    .filter((t, i, arr) => !(t === "↵" && arr[i - 1] === "↵"));
-                setWords(tokens);
-                setCompletedWords([]);
-                setCurrentWordIndex(0);
-                setCurrentLine(0);
-                setCurrentInput("");
-                setLoading(false);
-            })
-            .catch(e => {
-                setError(e instanceof Error ? e.message : String(e));
-                setLoading(false);
-            });
+    seekChunk(sessionId, index)
+        .then(chunk => {
+            setChunkText(chunk.text);
+            const tokens = chunk.text
+                .split(/( |\n)/)
+                .filter(t => t !== " " && t.length > 0)
+                .map(t => t === "\n" ? "↵" : t)
+                .filter((t, i, arr) => !(t === "↵" && arr[i - 1] === "↵"));
+            setWords(tokens);
+            setCompletedWords([]);
+            setCurrentWordIndex(0);
+            setCurrentLine(0);
+            setCurrentInput("");
+            setCurrentChunkIndex(index + 1);
+            setLoading(false);
+        })
+        .catch(e => {
+            setError(e instanceof Error ? e.message : String(e));
+            setLoading(false);
+        });
 }
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -320,7 +347,7 @@ export default function SessionPage() {
                         Comprehension questions will appear here.
                     </p>
                     <button
-                        onClick={loadNextChunk}
+                        onClick={() => loadNextChunk(currentChunkIndex)}
                         className="px-8 py-3 rounded-md text-sm font-semibold tracking-wide uppercase transition-opacity hover:opacity-80"
                         style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
                     >
